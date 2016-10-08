@@ -34,9 +34,10 @@ class RRDTree(object):
                      stdout=PIPE)
         self.source_files = proc.communicate()[0].split()
 
-    def move_files(self):
+    def handle_files(self):
         if self.source_files == []:
             self.source_files = ['/opt/zenoss/aaa/bbb/ccc/first.txt',
+                                 '/opt/zenoss/aaa/bbb/ccc/third.txt',
                                  '/opt/zenoss/ddd/eee/fff/second.txt']
         for line in self.source_files:
             targ_file = self.src_file_to_dest_file(line)
@@ -88,7 +89,18 @@ class RRDTree(object):
             print [proc.returncode, errors, output]
             exit
 
+    def move_file(self, src, dst):
+        proc = Popen(['mv',
+                      src,
+                      dst],
+                     stdout=PIPE)
+        output, errors = proc.communicate()
+        if proc.returncode or errors:
+            print [proc.returncode, errors, output]
+            exit
+
 
 if __name__ == "__main__":
     gg = RRDTree()
-    gg.make_destination_tree()
+    gg.find_files()
+    gg.handle_files()
