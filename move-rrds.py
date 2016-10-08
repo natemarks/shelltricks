@@ -19,8 +19,10 @@ class RRDTree(object):
         self.destination = "/tmp"
         self.age = 365
         self.subdirs = []
+        self.source_files = []
         self.__dict__.update(kwargs)
-        print self.source
+
+    def find_files(self):
         proc = Popen(['find',
                       self.source,
                       '-type',
@@ -35,7 +37,8 @@ class RRDTree(object):
     def make_destination_tree(self):
         self.dest_dirs = []
         if self.source_files == []:
-            self.source_files = ['/opt/zenoss/aaa/bbb/ccc/filename.txt']
+            self.source_files = ['/opt/zenoss/aaa/bbb/ccc/first.txt',
+                                 '/opt/zenoss/ddd/eee/fff/second.txt']
         for line in self.source_files:
             targ_file = self.src_file_to_dest_file(line)
             print "======================"
@@ -114,4 +117,4 @@ class RRDTree(object):
 
 if __name__ == "__main__":
     gg = RRDTree()
-    gg.create_directory("/tmpg/aaa/bbb/ccc")
+    gg.make_destination_tree()
