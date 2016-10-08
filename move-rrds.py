@@ -50,8 +50,6 @@ class RRDTree(object):
                 print "CREATING: " + targ_dir
                 self.dest_dirs.append(targ_dir)
 
-        print self.prepend_dest_prefix()
-
     def strip_source_prefix(self):
         '''
         need to remvoe the source directory from every entry
@@ -102,6 +100,7 @@ class RRDTree(object):
     def strip_file_from_path(self, filepath):
         parts = filepath.split('/')
         parts.pop()
+        parts = filter(None, parts)
         return "/" + "/".join(parts)
 
     def create_directory(self, dir):
