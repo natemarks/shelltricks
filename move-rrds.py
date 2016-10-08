@@ -16,7 +16,7 @@ class RRDTree(object):
     def __init__(self, *args, **kwargs):
         # store all kwargs into the __dict__
         self.source = "/opt/zenoss"
-        self.destination = "/tmp"
+        self.destination = "/tmp/moved_rrds"
         self.age = 365
         self.source_files = []
         self.created_dirs = []
@@ -52,6 +52,7 @@ class RRDTree(object):
         if dir not in self.created_dirs:
             print "CREATING: " + dir
             self.created_dirs.append(dir)
+            self.create_directory(dir)
         else:
             print "EXISTS: " + dir
 
