@@ -18,8 +18,8 @@ class RRDTree(object):
         self.source = "/opt/zenoss"
         self.destination = "/tmp"
         self.age = 365
-        self.subdirs = []
         self.source_files = []
+        self.created_dirs = []
         self.__dict__.update(kwargs)
 
     def find_files(self):
@@ -34,8 +34,7 @@ class RRDTree(object):
                      stdout=PIPE)
         self.source_files = proc.communicate()[0].split()
 
-    def make_destination_tree(self):
-        self.dest_dirs = []
+    def move_files(self):
         if self.source_files == []:
             self.source_files = ['/opt/zenoss/aaa/bbb/ccc/first.txt',
                                  '/opt/zenoss/ddd/eee/fff/second.txt']
@@ -46,38 +45,14 @@ class RRDTree(object):
             print "TO: " + targ_file
             print "======================"
             targ_dir = self.strip_file_from_path(targ_file)
-            if targ_dir not in self.dest_dirs:
-                print "CREATING: " + targ_dir
-                self.dest_dirs.append(targ_dir)
+            self.handle_directory(targ_dir)
 
-    def strip_source_prefix(self):
-        '''
-        need to remvoe the source directory from every entry
-        knowing how find works, we assume that every list entry begins with the
-        self.source string so we remove an equal number of characters from the
-        beginning of each entry
-        '''
-        dest_list = []
-        if self.source_files == []:
-            self.source_files = ['/opt/zenoss/aaa/bbb/ccc/filename.txt']
-        for line in self.source_files:
-            dest_list.append(line[len(self.source):])
-        # remove duplicates by converting to set and back to list
-        dest_list = list(set(dest_list))
-        return dest_list
-
-    def prepend_dest_prefix(self):
-        '''
-        prepend the new target directory onto every  path
-        '''
-        prepended_list = []
-        for line in self.strip_source_prefix():
-            line = "/" + self.destination + "/" + line
-            parts = line.split('/')
-#            filter out empty list elements
-            parts = filter(None, parts)
-            prepended_list.append("/" + "/".join(parts))
-        return prepended_list
+    def handle_directory(self, dir):
+        if dir not in self.created_dirs:
+            print "CREATING: " + dir
+            self.created_dirs.append(dir)
+        else:
+            print "EXISTS: " + dir
 
     def src_file_to_dest_file(self, filepath):
         '''
