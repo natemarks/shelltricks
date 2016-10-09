@@ -14,12 +14,19 @@ class RRDTree(object):
     RRDTree object to be managed
     '''
     def __init__(self, *args, **kwargs):
+        '''
+        COPY mode copies files to new location
+        MOVE mode moves them to the new location
+        '''
         # store all kwargs into the __dict__
-        self.source = "/opt/zenoss"
+#        self.source = "/opt/zenoss"
+        self.source =\
+            "/opt/zenoss/perf/Devices/LCS_HCS_CM_CLUSTER/198.18.15.10"
         self.destination = "/tmp/moved_rrds"
         self.age = 365
         self.source_files = []
         self.created_dirs = []
+        self.mode = "COPY"
         self.__dict__.update(kwargs)
 
     def find_files(self):
@@ -41,12 +48,12 @@ class RRDTree(object):
                                  '/opt/zenoss/ddd/eee/fff/second.txt']
         for line in self.source_files:
             targ_file = self.src_file_to_dest_file(line)
-            print "======================"
-            print "MOVING: " + line
-            print "TO: " + targ_file
-            print "======================"
             targ_dir = self.strip_file_from_path(targ_file)
             self.handle_directory(targ_dir)
+            if self.mode == "COPY":
+                self.copy_file(line, targ_file)
+            elif self.mode == "MOVE":
+                self.move_file(line, targ_file)
 
     def handle_directory(self, dir):
         if dir not in self.created_dirs:
@@ -90,7 +97,25 @@ class RRDTree(object):
             print [proc.returncode, errors, output]
             exit
 
+    def copy_file(self, src, dst):
+        print "======================"
+        print "COPYING: " + src
+        print "TO: " + dst
+        print "======================"
+        proc = Popen(['cp',
+                      src,
+                      dst],
+                     stdout=PIPE)
+        output, errors = proc.communicate()
+        if proc.returncode or errors:
+            print [proc.returncode, errors, output]
+            exit
+
     def move_file(self, src, dst):
+        print "======================"
+        print "MOVING: " + src
+        print "TO: " + dst
+        print "======================"
         proc = Popen(['mv',
                       src,
                       dst],
