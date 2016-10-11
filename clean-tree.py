@@ -1,8 +1,24 @@
 '''
-subdirs is a list of directory paths source is the existing rrd tree opath.
-defautls to /opt/zenoss destinatipon is where we'll dupicate the tree under
-source and move the old rrds age is the mtime value.  anything oldr than age
-will get move
+clean-tree is used to clean certain types of files out of a directory tree.
+When run without any arguments, it reports the number and size of the mathcing
+files in the source tree.
+
+self.source [default: '/opt/zenoss' ]:  is the directory scope of the find
+command.  matching files will be acted upon
+
+self.destination [default: '/tmp/moved_rrds' ]: the directories under the
+target tree that contain matching files will be recreated in the destination
+directory
+
+self.age:  files older than <age> days will be included in the find
+
+self.mode:
+     - COPY : matching files in the source tree wil be copied to the
+       destination tree
+     - MOVE : matching files in the source tree will be moved to the
+       destination tree
+     - REPORT : report on the foudn files without chaning anything
+
 '''
 
 
@@ -15,6 +31,7 @@ class RRDTree(object):
     '''
     def __init__(self, *args, **kwargs):
         '''
+        REPORT mode reports on the found files
         COPY mode copies files to new location
         MOVE mode moves them to the new location
         '''
@@ -24,10 +41,40 @@ class RRDTree(object):
             "/opt/zenoss/perf/Devices/LCS_HCS_CM_CLUSTER/198.18.15.10"
         self.destination = "/tmp/moved_rrds"
         self.age = 365
+        self.verbose = False
         self.source_files = []
         self.created_dirs = []
-        self.mode = "COPY"
+        self.mode = "REPORT"
         self.__dict__.update(kwargs)
+        self.find_files()
+        self.handle_files()
+        self.print_report()
+
+    def convert_size(self, size):
+        import math
+        if (size == 0):
+            return '0B'
+        size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+        i = int(math.floor(math.log(size, 1024)))
+        p = math.pow(1024, i)
+        s = round(size/p, 2)
+        return '%s %s' % (s, size_name[i])
+
+    def file_size_summary(self):
+        from os.path import getsize
+        total_size = 0
+        for file in self.source_files:
+            total_size = total_size + int(getsize(file))
+        print "TOTAL SIZE: " + self.convert_size(total_size)
+
+    def detailed_report(self):
+        pass
+
+    def print_report(self):
+        print "SOURCE DIRECTORY: " + self.source
+        print "DESTINATION DIRECTORY: " + self.destination
+        print "NUMBER OF MATCHING FILES: " + str(len(self.source_files))
+        self.file_size_summary()
 
     def find_files(self):
         proc = Popen(['find',
@@ -54,6 +101,9 @@ class RRDTree(object):
                 self.copy_file(line, targ_file)
             elif self.mode == "MOVE":
                 self.move_file(line, targ_file)
+            if self.verbose:
+                print "SOURCE: " + line
+                print "DEST: " + targ_file
 
     def handle_directory(self, dir):
         if dir not in self.created_dirs:
@@ -127,6 +177,20 @@ class RRDTree(object):
 
 
 if __name__ == "__main__":
+    dscr = """
+clean-tree is used to clean certain types of files out of a directory tree.
+When run without any arguments, it reports the number and size of the mathcing
+files in the source tree.
+    """
+    import argparse
+    parser = argparse.ArgumentParser(description=dscr)
+    parser.add_argument('--mode', action='store', dest='mode',
+                        default='REPORT',
+                        help='mode can be REPORT, COPY or MOVE',
+                        choices=("REPORT", "COPY", "MOVE"))
+    parser.add_argument('--verbose', action='store_true', dest='verbose',
+                        default=False,
+                        help='print detailed report')
+    opts = parser.parse_args()
+
     gg = RRDTree()
-    gg.find_files()
-    gg.handle_files()
