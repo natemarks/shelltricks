@@ -1,4 +1,7 @@
 '''
+NOTE:  because I use argparse, this tool must be run on python 2.7 or above. on
+a Z4 collector, that means running it at the zenoss user
+
 clean-tree is used to clean certain types of files out of a directory tree.
 When run without any arguments, it reports the number and size of the mathcing
 files in the source tree.
@@ -193,4 +196,4 @@ files in the source tree.
                         help='print detailed report')
     opts = parser.parse_args()
 
-    gg = RRDTree()
+    gg = RRDTree(mode=opts.mode, verbose=opts.verbose)
