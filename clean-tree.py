@@ -39,11 +39,10 @@ class RRDTree(object):
         MOVE mode moves them to the new location
         '''
         # store all kwargs into the __dict__
-#        self.source = "/opt/zenoss"
-        self.source =\
-            "/opt/zenoss/perf/Devices/LCS_HCS_CM_CLUSTER/198.18.15.10"
+        self.source = "/opt/zenoss"
         self.destination = "/tmp/moved_rrds"
         self.age = 365
+        self.fileglob = "*.rrd"
         self.verbose = False
         self.source_files = []
         self.created_dirs = []
@@ -74,6 +73,8 @@ class RRDTree(object):
         pass
 
     def print_report(self):
+        print "LOOKING AT FILES OLDER THAN " + str(self.age) + " DAYS"
+        print "THAT LOOK LIKE: " + self.fileglob
         print "SOURCE DIRECTORY: " + self.source
         print "DESTINATION DIRECTORY: " + self.destination
         print "NUMBER OF MATCHING FILES: " + str(len(self.source_files))
@@ -87,7 +88,7 @@ class RRDTree(object):
                       '-mtime',
                       '+' + str(self.age),
                       '-name',
-                      'NWN-DEVICE-PING-STATS_rtt_min.rrd'],
+                      self.fileglob],
                      stdout=PIPE)
         self.source_files = proc.communicate()[0].split()
 
@@ -194,6 +195,9 @@ files in the source tree.
     parser.add_argument('--verbose', action='store_true', dest='verbose',
                         default=False,
                         help='print detailed report')
+    parser.add_argument('--age', action='store', dest='age',
+                        default=365,
+                        help='select files older than this many days')
     opts = parser.parse_args()
 
-    gg = RRDTree(mode=opts.mode, verbose=opts.verbose)
+    gg = RRDTree(mode=opts.mode, verbose=opts.verbose, age=opts.age)
