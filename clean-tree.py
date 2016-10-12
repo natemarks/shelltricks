@@ -32,6 +32,14 @@ class RRDTree(object):
     '''
     RRDTree object to be managed
     '''
+    HOUR_IN_SECONDS = 3600
+    DAY_IN_SECONDS = 86400
+    YEAR_IN_SECONDS = 31536000
+    TIMEUNITS = {'HOUR': 3600,
+                 'DAY': 86400,
+                 'YEAR': 31536000
+                 }
+
     def __init__(self, *args, **kwargs):
         '''
         REPORT mode reports on the found files
@@ -41,8 +49,7 @@ class RRDTree(object):
         # store all kwargs into the __dict__
         self.source = "/opt/zenoss"
         self.destination = "/tmp/moved_rrds"
-        self.age = 365
-        self.fileglob = "*.rrd"
+        self.file_extension = ".rrd"
         self.verbose = False
         self.source_files = []
         self.created_dirs = []
@@ -51,6 +58,7 @@ class RRDTree(object):
         self.find_files()
         self.handle_files()
         self.print_report()
+        self.age = "YEAR"
 
     def convert_size(self, size):
         import math
@@ -73,24 +81,34 @@ class RRDTree(object):
         pass
 
     def print_report(self):
-        print "LOOKING AT FILES OLDER THAN " + str(self.age) + " DAYS"
-        print "THAT LOOK LIKE: " + self.fileglob
+        print "LOOKING AT FILES OLDER THAN ONE " + self.age
+        print "THAT END WITH: " + self.file_extension
         print "SOURCE DIRECTORY: " + self.source
         print "DESTINATION DIRECTORY: " + self.destination
         print "NUMBER OF MATCHING FILES: " + str(len(self.source_files))
         self.file_size_summary()
 
+    def file_older_than_n(self, file, seconds):
+        '''
+        return true if the file is ilder than n seconds
+        '''
+        import time
+        import os
+        stat = os.stat(file)
+        mtime = int(stat.st_mtime)
+        return mtime < int(time.time()) - seconds
+
     def find_files(self):
-        proc = Popen(['find',
-                      self.source,
-                      '-type',
-                      'f',
-                      '-mtime',
-                      '+' + str(self.age),
-                      '-name',
-                      self.fileglob],
-                     stdout=PIPE)
-        self.source_files = proc.communicate()[0].split()
+        import os
+        match_list = []
+        for root, directories, filenames in os.walk(self.source):
+            for filename in filenames:
+                fullpath = os.path.join(root, filename)
+                if filename.endswith(self.file_extension):
+                    if self.file_older_than_n(fullpath,
+                                              self.TIMEUNITS[self.age]):
+                        match_list.append(fullpath)
+        self.source_files = match_list
 
     def handle_files(self):
         if self.source_files == []:
@@ -196,7 +214,7 @@ files in the source tree.
                         default=False,
                         help='print detailed report')
     parser.add_argument('--age', action='store', dest='age',
-                        default=365,
+                        default='YEAR',
                         help='select files older than this many days')
     opts = parser.parse_args()
 
