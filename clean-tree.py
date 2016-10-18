@@ -77,9 +77,6 @@ class RRDTree(object):
             total_size = total_size + int(getsize(file))
         print "TOTAL SIZE: " + self.convert_size(total_size)
 
-    def detailed_report(self):
-        pass
-
     def print_report(self):
         print "LOOKING AT FILES OLDER THAN ONE " + self.age
         print "THAT END WITH: " + self.file_extension
