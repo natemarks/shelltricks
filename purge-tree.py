@@ -56,9 +56,9 @@ class RRDTree(object):
         self.__dict__.update(kwargs)
         self.age = "YEAR"
         self.gather_data()
-        self.handle_files()
         self.write_object()
         self.print_report()
+        self.handle_files()
 
     def src_file_to_dest_file(self, filepath):
         '''
@@ -89,7 +89,8 @@ class RRDTree(object):
         *********
         TODO:  try this gather out instead of fild fils
         '''
-        if os.path.isdir(self.get_dir_from_filepath(filepath)):
+        dir = self.get_dir_from_filepath(filepath)
+        if not os.path.isdir(dir):
             proc = Popen(['mkdir',
                           '-p',
                           dir],
@@ -123,6 +124,7 @@ class RRDTree(object):
     def write_object(self):
         import yaml
         filename = '-'.join([self.timestamp, 'RRDTree.yml'])
+        print "Rollback File: " + filename
         with open(filename, 'w') as outfile:
                 yaml.dump(self, outfile, default_flow_style=True)
 
@@ -174,6 +176,9 @@ class RRDTree(object):
         return mtime < int(time.time()) - seconds
 
     def handle_files(self):
+        print "********************"
+        print "executing file " + self.mode
+        print "********************"
         for key, val in self.file_dict.iteritems():
             self.validate_path(val)
             if self.mode == "COPY":
