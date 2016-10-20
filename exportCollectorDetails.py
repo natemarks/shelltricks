@@ -39,7 +39,10 @@ for hub in dmd.Monitors.Hub.getHubs():
 sortedList = sorted(collectorList, key=itemgetter('collectorName'))
 yamlList = []
 for yamlcol in sortedList:
-    yamlList.append(yamlcol + '.inframax.ncare')
+    newname = yamlcol['collectorName'] + '.inframax.ncare'
+    yamlcol['collectorName'] = newname
+    yamlList.append(yamlcol)
+
 
 with open('collectors.yaml', 'w') as outfile:
     outfile.write( yaml.dump(yamlList, default_flow_style=False) )
