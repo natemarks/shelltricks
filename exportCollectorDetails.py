@@ -37,8 +37,12 @@ for hub in dmd.Monitors.Hub.getHubs():
         collectorDict['hubhost'] = hubFQDN.replace('.inframax.local', '.inframax.ncare')
         collectorList.append(collectorDict)
 sortedList = sorted(collectorList, key=itemgetter('collectorName'))
+yamlList = []
+for yamlcol in sortedList:
+    yamlList.append(yamlcol + '.inframax.ncare')
+
 with open('collectors.yaml', 'w') as outfile:
-    outfile.write( yaml.dump(sortedList, default_flow_style=False) )
+    outfile.write( yaml.dump(yamlList, default_flow_style=False) )
 print "ANSIBLE OUTPUT"
 for item in collectorList:
     aname=item['collectorName'].replace('.', '-') + ".inframax.ncare"
